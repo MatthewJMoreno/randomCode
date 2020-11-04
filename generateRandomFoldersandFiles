@@ -9,11 +9,11 @@ numSensitive=0
 alreadyVisited=0
 rootDir=$PWD
 
-for i in {1..500} ; do
+for i in {1..1000} ; do
     #generate a random number between 1 and 10, this will control the depth of each file. Example
     # if end = 3, then it will make a directory /../../...../ that is 3 deep. Change 10 to what ever
     # you want to change the maximum depth.
-    depth=$(( ( RANDOM % 20)  + 1 ))
+    depth=$(( ( RANDOM % 25)  + 1 ))
 
     currDirectory=$PWD
 
