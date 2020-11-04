@@ -1,0 +1,58 @@
+#!/bin/bash
+
+#This script will add random subdirectories and random files within each.
+#This scipt is meant to be run in a directory you intend to fill up with random folder/files
+#This script also injects, at random, sensitive.txt. The idea of this script is test a file system crawler
+#to see how fast it can find sensitive.txt
+
+numSensitive=0
+alreadyVisited=0
+rootDir=$PWD
+
+for i in {1..500} ; do
+    #generate a random number between 1 and 10, this will control the depth of each file. Example
+    # if end = 3, then it will make a directory /../../...../ that is 3 deep. Change 10 to what ever
+    # you want to change the maximum depth.
+    depth=$(( ( RANDOM % 20)  + 1 ))
+
+    currDirectory=$PWD
+
+    # this loop will generate 1, e, ... end - 1 random strings. These strings will be used to create the depth.
+    # Example: if end = 3 and the first iteration generates "abcd" then it makes the directory /current_dir/abcd
+    # it them updates the currDirectory to /current_dir/abcd, generates a new random strings like "agbx" then makes
+    # a directory /current_dir/abcd/agbx and so on.
+    for (( j = 0; j < $depth; j++)) do
+        #change 3 to change the legth of the random directory name
+        randDirName=$(openssl rand -base64 3)
+        mkdir $currDirectory/$randDirName
+
+        currDirectory="${currDirectory}/${randDirName}"
+
+        #echo "Current directory is $currDirectory"
+        #make up to 10 + 1 if sensitive is inserted otherwise 10 random files in currDirectory
+        n=$(( ( RANDOM % 15 )  + 1 ))
+        for (( k = 0; k < $n; k++)) do
+            randFileName=$(openssl rand -base64 5)
+            #echo "      Adding $randFileName to $currDirectory"
+            touch $currDirectory/$randFileName
+
+            #make the descision to insert special.txt into current directory
+            #will insert if numSensitive < 10, num is a multiple of 7 and directory exists
+            if [ -d "${currDirectory}" ]; then
+                num=$(( ( RANDOM % 20 )  + 1 ))
+                if (( $num % 7 == 0 && $numSensitive < 10 && alreadyVisited == 0)) ;
+                then
+                    touch $currDirectory/"sensitive.txt"
+                    numSensitive=$((numSensitive+1))
+                    alreadyVisited=1
+                    echo "sensitive.txt inserted into $currDirectory" >> $rootDir/sensitiveLocations.txt
+                fi
+            fi
+        done
+        
+    done
+
+    alreadyVisited=0
+done
+
+echo "A total of $numSensitive sensitive.txt files have been inserted. Consult sensitiveLocations.txt to find where" >> $rootDir/sensitiveLocations.txt
